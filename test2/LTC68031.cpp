@@ -1,3 +1,11 @@
+/**
+ * MODIFIED
+ * 
+ * - custom chip select logic, remember to set pin direction!
+ */
+
+#define CS_PIN 4
+
 /*!
   LTC6803-1 Multicell Battery Monitor
 
@@ -115,9 +123,9 @@ void LTC6803_wrcfg(uint8_t total_ic,uint8_t config[][6])
     cmd_index = cmd_index + 1;
   }
 
-  output_low(LTC6803_CS);
+  digitalWrite(CS_PIN, LOW);
   spi_write_array(CMD_LEN, cmd);
-  output_high(LTC6803_CS);
+  digitalWrite(CS_PIN, HIGH);
   free(cmd);
 }
 
@@ -142,9 +150,9 @@ int8_t LTC6803_rdcfg(uint8_t total_ic, //Number of ICs in the system
   cmd[1] = 0xCE;
 
 
-  output_low(LTC6803_CS);
+  digitalWrite(CS_PIN, LOW);
   spi_write_read(cmd, 2, rx_data, (BYTES_IN_REG*total_ic));         //Read the configuration data of all ICs on the daisy chain into
-  output_high(LTC6803_CS);                          //rx_data[] array
+  digitalWrite(CS_PIN, HIGH);                        //rx_data[] array
 
   for (uint8_t current_ic = 0; current_ic < total_ic; current_ic++)       //executes for each LTC6803 in the daisy chain and packs the data
   {
@@ -173,20 +181,20 @@ int8_t LTC6803_rdcfg(uint8_t total_ic, //Number of ICs in the system
 //Function to start Cell Voltage measurement
 void LTC6803_stcvad()
 {
-  output_low(LTC6803_CS);
+  digitalWrite(CS_PIN, LOW);
   spi_write(0x10);
   spi_write(0xB0);
-  output_high(LTC6803_CS);
+  digitalWrite(CS_PIN, HIGH);
 }
 
 
 //Function to start Temp channel voltage measurement
 void LTC6803_sttmpad()
 {
-  output_low(LTC6803_CS);
+  digitalWrite(CS_PIN, LOW);
   spi_write(0x30);
   spi_write(0x50);
-  output_high(LTC6803_CS);
+  digitalWrite(CS_PIN, HIGH);
 }
 
 
@@ -201,7 +209,7 @@ int8_t LTC6803_rdtmp(uint8_t total_ic, uint16_t temp_codes[][3])
   uint8_t *rx_data;
   rx_data = (uint8_t *) malloc((6*total_ic)*sizeof(uint8_t));
 
-  output_low(LTC6803_CS);
+  digitalWrite(CS_PIN, LOW);
   spi_write(0x0E);
   spi_write(0xEA);
   for (int i=0; i<total_ic; i++)
@@ -211,7 +219,7 @@ int8_t LTC6803_rdtmp(uint8_t total_ic, uint16_t temp_codes[][3])
       rx_data[data_counter++] =spi_read(0xFF);
     }
   }
-  output_high(LTC6803_CS);
+  digitalWrite(CS_PIN, HIGH);
 
   int cell_counter = 0;
   data_counter = 0;
@@ -252,7 +260,7 @@ uint8_t LTC6803_rdcv( uint8_t total_ic, uint16_t cell_codes[][12])
   uint8_t *rx_data;
   rx_data = (uint8_t *) malloc((19*total_ic)*sizeof(uint8_t));
 
-  output_low(LTC6803_CS);
+  digitalWrite(CS_PIN, LOW);
   spi_write(0x04);
   spi_write(0xDC);
   for (int i=0; i<total_ic; i++)
@@ -262,7 +270,7 @@ uint8_t LTC6803_rdcv( uint8_t total_ic, uint16_t cell_codes[][12])
       rx_data[data_counter++] =spi_read(0xFF);
     }
   }
-  output_high(LTC6803_CS);
+  digitalWrite(CS_PIN, HIGH);
 
   int cell_counter = 0;
   data_counter = 0;
