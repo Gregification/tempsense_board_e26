@@ -19,3 +19,4 @@ Adafruit periodically polls the LTC and forwards results to BMS, a copy of the d
 
 - [LTC68031 datasheet](https://www.analog.com/media/en/technical-documentation/data-sheets/680313fa.pdf)
 - i have no idea where the Orian BMS CAN datasheet is online. theres a copy in discord named "thermistor_module_canbos(8).pdf" ( "(8)" yikes ).
+- [Arduino Adafruit CAN setup & examples](https://learn.adafruit.com/adafruit-feather-m4-can-express/arduino-can-examples)
