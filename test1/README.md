@@ -1,5 +1,5 @@
 # Temp sense code
-> this code is untested!
+> this code is tested. it works.
 
 **target board:** arduino adafruit.
 
