@@ -1,22 +1,13 @@
-# Temp sense code
-> this code is tested. it works.
+# Test of basic comms
+> code tested and works
 
 **target board:** arduino adafruit.
 
-**purpose:** interface the LTC68031 with the Orian BMS, and to log cell data.<br>
+**purpose:** test read/write of control registers<br>
 
-**context:** this code allows for the Adafruit to act as a intermidetary between the Orian and the LTC ic. this is needed to act as a custom voltage monitoring interface to the Orian. In our case the LTC is used to measure cell voltages, that must be forwarded to the BMS; problem is that the 2 interfaces - physically and digitally - are incompatiable. the arduino just bridges that.
+**conclusions:** Data lines seem to have a lot of noise, typtically takes 5-20 read attempts per sucessful read (tested in the archive), unknown attempts on write as we havent found a way to test all registers without just reading them. suspect noise is caused by bad connections (seried jumper wires with pin&slot connectors).
 
----
-### How it _supposed_ to work
-Adafruit periodically polls the LTC and forwards results to BMS, a copy of the data is logged internally to be recovered after each drive. (rf solution?)
-
----
-### Resources
-<img src="https://cdn-shop.adafruit.com/970x728/5724-00.jpg" alt="epic image of the adafruit board (may not be the exact one but looks close enough)">
-    <a href="https://www.adafruit.com/product/5724" alt="adafruit has falled"></a>
-</img>
-
-- [LTC68031 datasheet](https://www.analog.com/media/en/technical-documentation/data-sheets/680313fa.pdf)
-- i have no idea where the Orian BMS CAN datasheet is online. theres a copy in discord named "thermistor_module_canbos(8).pdf" ( "(8)" yikes ).
-- [Arduino Adafruit CAN setup & examples](https://learn.adafruit.com/adafruit-feather-m4-can-express/arduino-can-examples)
+### note
+- can potentially damage connected things! a itterating counter is being written to the control registers, this WILL cause it to do things like dicharge the cells.
+- tested using the suggested circuit in the devboards datasheet. 4 resistors in series with single a psu. tested over 10-20v, .5Amax.
+- control registers are both for read and write. 'registers' can read differently than what they are set to. (e.g: consider the watch dog timer register, writing turns it on/off but reading returns if it has timed out, not indicative of it being on/off).
