@@ -32,7 +32,7 @@ uint8_t pec8calc(uint8_t len, uint8_t* data) {
  *      - tldr theory : https://youtu.be/sNkERQlK8j8?t=1146
  *      - tldr tldr : division as such works because of binary finite field rules
 */
-uint8_t pec8_calc(uint8_t quotient, uint8_t seed, uint8_t len, uint8_t const * data) {
+uint8_t pec8_calc_general(uint8_t quotient, uint8_t seed, uint8_t len, uint8_t const * data) {
     uint8_t remainder = seed;
 
     uint8_t highestBit = quotient;//highest bit of quotent
