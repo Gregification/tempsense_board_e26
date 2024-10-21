@@ -1,96 +1,159 @@
 /**
  * commands for the ltc6903
  * 
- * - pg21
- * - oddly enough this dosent already exist in the libs, they hardcode the values
+ * - ltc.21
+ * - oddly enough, the linduino coded hardcode the values. great legibility guys
+ * - using a bunch of macros because its a industry standard
  */
 
-#include <stdint.h>
-//#include <type_traits>  // for std::is_standard_layout
+#ifndef __LTC6803_CMDS_H
+#define __LTC6803_CMDS_H
 
-namespace LTC6803_Cmd {
-    union Cmd {
-        struct Cmd_s{
-            uint8_t code;       // command code
-            uint8_t pec;        // packet error code
-        } cmd;
-       // static_assert(std::is_standard_layout<Cmd_s>::value);
+#define WRCFG_CODE                  (0x01)
+#define WRCFG_PEC                   (0xC7)
+#define RDCFG_CODE                  (0x02)
+#define RDCFG_PEC                   (0xDE)
+#define RDCV_CODE                   (0x04)
+#define RDCV_PEC                    (0xDC)
+#define RDCVA_CODE                  (0x06)
+#define RDCVA_PEC                   (0xD2)
+#define RDCVB_CODE                  (0x08)
+#define RDCVB_PEC                   (0xF8)
+#define RDCVC_CODE                  (0x0A)
+#define RDCVC_PEC                   (0xF6)
+#define RDFLG_CODE                  (0x0C)
+#define RDFLG_PEC                   (0xE4)
+#define RDTMP_CODE                  (0x0E)
+#define RDTMP_PEC                   (0xEA)
+#define STCVAD_ALL_CODE             (0x10)
+#define STCVAD_ALL_PEC              (0xB0)
+#define STCVAD_Cell1_CODE           (0x11)
+#define STCVAD_Cell1_PEC            (0xB7)
+#define STCVAD_Cell2_CODE           (0x12)
+#define STCVAD_Cell2_PEC            (0xBE)
+#define STCVAD_Cell3_CODE           (0x13)
+#define STCVAD_Cell3_PEC            (0xB9)
+#define STCVAD_Cell4_CODE           (0x14)
+#define STCVAD_Cell4_PEC            (0xAC)
+#define STCVAD_Cell5_CODE           (0x15)
+#define STCVAD_Cell5_PEC            (0xAB)
+#define STCVAD_Cell6_CODE           (0x16)
+#define STCVAD_Cell6_PEC            (0xA2)
+#define STCVAD_Cell7_CODE           (0x17)
+#define STCVAD_Cell7_PEC            (0xA5)
+#define STCVAD_Cell8_CODE           (0x18)
+#define STCVAD_Cell8_PEC            (0x88)
+#define STCVAD_Cell9_CODE           (0x19)
+#define STCVAD_Cell9_PEC            (0x8F)
+#define STCVAD_Cell10_CODE          (0x1A)
+#define STCVAD_Cell10_PEC           (0x86)
+#define STCVAD_Cell11_CODE          (0x1B)
+#define STCVAD_Cell11_PEC           (0x81)
+#define STCVAD_Cell12_CODE          (0x1C)
+#define STCVAD_Cell12_PEC           (0x94)
+#define STCVAD_Clear_CODE           (0x1D)
+#define STCVAD_Clear_PEC            (0x93)
+#define STCVAD_SelfTest1_CODE       (0x1E)
+#define STCVAD_SelfTest1_PEC        (0x9A)
+#define STCVAD_SelfTest2_CODE       (0x1F)
+#define STCVAD_SelfTest2_PEC        (0x9D)
+#define STOWAD_ALL_CODE             (0x20)
+#define STOWAD_ALL_PEC              (0x20)
+#define STOWAD_Cell1_CODE           (0x21)
+#define STOWAD_Cell1_PEC            (0x27)
+#define STOWAD_Cell2_CODE           (0x22)
+#define STOWAD_Cell2_PEC            (0x2E)
+#define STOWAD_Cell3_CODE           (0x23)
+#define STOWAD_Cell3_PEC            (0x29)
+#define STOWAD_Cell4_CODE           (0x24)
+#define STOWAD_Cell4_PEC            (0x3C)
+#define STOWAD_Cell5_CODE           (0x25)
+#define STOWAD_Cell5_PEC            (0x3B)
+#define STOWAD_Cell6_CODE           (0x26)
+#define STOWAD_Cell6_PEC            (0x32)
+#define STOWAD_Cell7_CODE           (0x27)
+#define STOWAD_Cell7_PEC            (0x35)
+#define STOWAD_Cell8_CODE           (0x28)
+#define STOWAD_Cell8_PEC            (0x18)
+#define STOWAD_Cell9_CODE           (0x29)
+#define STOWAD_Cell9_PEC            (0x1F)
+#define STOWAD_Cell10_CODE          (0x2A)
+#define STOWAD_Cell10_PEC           (0x16)
+#define STOWAD_Cell11_CODE          (0x2B)
+#define STOWAD_Cell11_PEC           (0x11)
+#define STOWAD_Cell12_CODE          (0x2C)
+#define STOWAD_Cell12_PEC           (0x04)
+#define STTMPAD_ALL_CODE            (0x30)
+#define STTMPAD_ALL_PEC             (0x50)
+#define STTMPAD_External1_CODE      (0x31)
+#define STTMPAD_External1_PEC       (0x57)
+#define STTMPAD_External2_CODE      (0x32)
+#define STTMPAD_External2_PEC       (0x5E)
+#define STTMPAD_Internal_CODE       (0x33)
+#define STTMPAD_Internal_PEC        (0x59)
+#define STTMPAD_SelfTest1_CODE      (0x3E)
+#define STTMPAD_SelfTest1_PEC       (0x7A)
+#define STTMPAD_SelfTest2_CODE      (0x3F)
+#define STTMPAD_SelfTest2_PEC       (0x7D)
+#define PLADC_CODE                  (0x40)
+#define PLADC_PEC                   (0x07)
+#define PLINT_CODE                  (0x50)
+#define PLINT_PEC                   (0x77)
+#define DAGN_CODE                   (0x52)
+#define DAGN_PEC                    (0x79)
+#define RDDGNR_CODE                 (0x54)
+#define RDDGNR_PEC                  (0x6B)
+#define STCVDC_ALL_CODE             (0x60)
+#define STCVDC_ALL_PEC              (0xE7)
+#define STCVDC_Cell1_CODE           (0x61)
+#define STCVDC_Cell1_PEC            (0xE0)
+#define STCVDC_Cell2_CODE           (0x62)
+#define STCVDC_Cell2_PEC            (0xE9)
+#define STCVDC_Cell3_CODE           (0x63)
+#define STCVDC_Cell3_PEC            (0xEE)
+#define STCVDC_Cell4_CODE           (0x64)
+#define STCVDC_Cell4_PEC            (0xFB)
+#define STCVDC_Cell5_CODE           (0x65)
+#define STCVDC_Cell5_PEC            (0xFC)
+#define STCVDC_Cell6_CODE           (0x66)
+#define STCVDC_Cell6_PEC            (0xF5)
+#define STCVDC_Cell7_CODE           (0x67)
+#define STCVDC_Cell7_PEC            (0xF2)
+#define STCVDC_Cell8_CODE           (0x68)
+#define STCVDC_Cell8_PEC            (0xDF)
+#define STCVDC_Cell9_CODE           (0x69)
+#define STCVDC_Cell9_PEC            (0xD8)
+#define STCVDC_Cell10_CODE          (0x6A)
+#define STCVDC_Cell10_PEC           (0xD1)
+#define STCVDC_Cell11_CODE          (0x6B)
+#define STCVDC_Cell11_PEC           (0xD6)
+#define STCVDC_Cell12_CODE          (0x6C)
+#define STCVDC_Cell12_PEC           (0xC3)
+#define STOWDC_ALL_CODE             (0x70)
+#define STOWDC_ALL_PEC              (0x97)
+#define STOWDC_Cell1_CODE           (0x71)
+#define STOWDC_Cell1_PEC            (0x90)
+#define STOWDC_Cell2_CODE           (0x72)
+#define STOWDC_Cell2_PEC            (0x99)
+#define STOWDC_Cell3_CODE           (0x73)
+#define STOWDC_Cell3_PEC            (0x9E)
+#define STOWDC_Cell4_CODE           (0x74)
+#define STOWDC_Cell4_PEC            (0x8B)
+#define STOWDC_Cell5_CODE           (0x75)
+#define STOWDC_Cell5_PEC            (0x8C)
+#define STOWDC_Cell6_CODE           (0x76)
+#define STOWDC_Cell6_PEC            (0x85)
+#define STOWDC_Cell7_CODE           (0x77)
+#define STOWDC_Cell7_PEC            (0x82)
+#define STOWDC_Cell8_CODE           (0x78)
+#define STOWDC_Cell8_PEC            (0xAF)
+#define STOWDC_Cell9_CODE           (0x79)
+#define STOWDC_Cell9_PEC            (0xA8)
+#define STOWDC_Cell10_CODE          (0x7A)
+#define STOWDC_Cell10_PEC           (0xA1)
+#define STOWDC_Cell11_CODE          (0x7B)
+#define STOWDC_Cell11_PEC           (0xA6)
+#define STOWDC_Cell12_CODE          (0x7C)
+#define STOWDC_Cell12_PEC           (0xB3)
 
-        uint8_t arr[2];
-    };
-
-    //          command                       code  pec
-    Cmd WRCFG                               { 0x01, 0xC7};
-    Cmd RDCFG                               { 0x02, 0xDE};
-    Cmd RDCV                                { 0x04, 0xDC};
-    Cmd RDCVA                               { 0x06, 0xD2};
-    Cmd RDCVB                               { 0x08, 0xF8};
-    Cmd RDCVC                               { 0x0A, 0xF6};
-    Cmd RDFLG                               { 0x0C, 0xE4};
-    Cmd RDTMP                               { 0x0E, 0xEA};
-    Cmd STCVAD_ALL                          { 0x10, 0xB0};
-    Cmd STCVAD_Cell1                        { 0x11, 0xB7};
-    Cmd STCVAD_Cell2                        { 0x12, 0xBE};
-    Cmd STCVAD_Cell3                        { 0x13, 0xB9};
-    Cmd STCVAD_Cell4                        { 0x14, 0xAC};
-    Cmd STCVAD_Cell5                        { 0x15, 0xAB};
-    Cmd STCVAD_Cell6                        { 0x16, 0xA2};
-    Cmd STCVAD_Cell7                        { 0x17, 0xA5};
-    Cmd STCVAD_Cell8                        { 0x18, 0x88};
-    Cmd STCVAD_Cell9                        { 0x19, 0x8F};
-    Cmd STCVAD_Cell10                       { 0x1A, 0x86};
-    Cmd STCVAD_Cell11                       { 0x1B, 0x81};
-    Cmd STCVAD_Cell12                       { 0x1C, 0x94};
-    Cmd STCVAD_Clear                        { 0x1D, 0x93};
-    Cmd STCVAD_SelfTest1                    { 0x1E, 0x9A};
-    Cmd STCVAD_SelfTest2                    { 0x1F, 0x9D};
-    Cmd STOWAD_ALL                          { 0x20, 0x20};
-    Cmd STOWAD_Cell1                        { 0x21, 0x27};
-    Cmd STOWAD_Cell2                        { 0x22, 0x2E};
-    Cmd STOWAD_Cell3                        { 0x23, 0x29};
-    Cmd STOWAD_Cell4                        { 0x24, 0x3C};
-    Cmd STOWAD_Cell5                        { 0x25, 0x3B};
-    Cmd STOWAD_Cell6                        { 0x26, 0x32};
-    Cmd STOWAD_Cell7                        { 0x27, 0x35};
-    Cmd STOWAD_Cell8                        { 0x28, 0x18};
-    Cmd STOWAD_Cell9                        { 0x29, 0x1F};
-    Cmd STOWAD_Cell10                       { 0x2A, 0x16};
-    Cmd STOWAD_Cell11                       { 0x2B, 0x11};
-    Cmd STOWAD_Cell12                       { 0x2C, 0x04};
-    Cmd STTMPAD_ALL                         { 0x30, 0x50};
-    Cmd STTMPAD_External1                   { 0x31, 0x57};
-    Cmd STTMPAD_External2                   { 0x32, 0x5E};
-    Cmd STTMPAD_Internal                    { 0x33, 0x59};
-    Cmd STTMPAD_SelfTest1                   { 0x3E, 0x7A};
-    Cmd STTMPAD_SelfTest2                   { 0x3F, 0x7D};
-    Cmd PLADC                               { 0x40, 0x07};
-    Cmd PLINT                               { 0x50, 0x77};
-    Cmd DAGN                                { 0x52, 0x79};
-    Cmd RDDGNR                              { 0x54, 0x6B};
-    Cmd STCVDC_ALL                          { 0x60, 0xE7};
-    Cmd STCVDC_Cell1                        { 0x61, 0xE0};
-    Cmd STCVDC_Cell2                        { 0x62, 0xE9};
-    Cmd STCVDC_Cell3                        { 0x63, 0xEE};
-    Cmd STCVDC_Cell4                        { 0x64, 0xFB};
-    Cmd STCVDC_Cell5                        { 0x65, 0xFC};
-    Cmd STCVDC_Cell6                        { 0x66, 0xF5};
-    Cmd STCVDC_Cell7                        { 0x67, 0xF2};
-    Cmd STCVDC_Cell8                        { 0x68, 0xDF};
-    Cmd STCVDC_Cell9                        { 0x69, 0xD8};
-    Cmd STCVDC_Cell10                       { 0x6A, 0xD1};
-    Cmd STCVDC_Cell11                       { 0x6B, 0xD6};
-    Cmd STCVDC_Cell12                       { 0x6C, 0xC3};
-    Cmd STOWDC_ALL                          { 0x70, 0x97};
-    Cmd STOWDC_Cell1                        { 0x71, 0x90};
-    Cmd STOWDC_Cell2                        { 0x72, 0x99};
-    Cmd STOWDC_Cell3                        { 0x73, 0x9E};
-    Cmd STOWDC_Cell4                        { 0x74, 0x8B};
-    Cmd STOWDC_Cell5                        { 0x75, 0x8C};
-    Cmd STOWDC_Cell6                        { 0x76, 0x85};
-    Cmd STOWDC_Cell7                        { 0x77, 0x82};
-    Cmd STOWDC_Cell8                        { 0x78, 0xAF};
-    Cmd STOWDC_Cell9                        { 0x79, 0xA8};
-    Cmd STOWDC_Cell10                       { 0x7A, 0xA1};
-    Cmd STOWDC_Cell11                       { 0x7B, 0xA6};
-    Cmd STOWDC_Cell12                       { 0x7C, 0xB3};
-}
+#endif  // __LTC6803_CMDS_H

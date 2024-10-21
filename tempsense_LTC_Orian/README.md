@@ -5,4 +5,4 @@
 
 **purpose:** interface the LTC68031 with the Orian BMS, and to log cell data.<br>
 
-**context:** the cleaned up and  version of whats in test3
+**context:** Rewritten from the ground up to avoid licensing issues of using 3rd party code outside of testing.

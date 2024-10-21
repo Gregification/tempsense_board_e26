@@ -1,34 +1,32 @@
-/**
-  baselined form the DC1651A.ino file1
-
-  LTC6803-1 datasheet used : https://www.analog.com/media/en/technical-documentation/data-sheets/680313fa.pdf
-  
-  notes:
-    - ltc6803 is non programmable. the library is just wrapper on a spi.
-    - cell balancing is done manually by toggling the S pins as needed.
-        - pg12
-    - there isnt much to the ic, everything the header has all there is.
+/** 
+ * see the main README on github for the data sheets
+ *    https://github.com/Gregification/tempsense_board_e26
+ * 
+ * what this does:
+ *    - periodicly polls the LTC for cell voltages, forwards that and related info to BMS.
+ *    - adc conversions are non-distruptive of discharge
+ * 
+ * what this does not do:
+ *    - configure for # of operating cells
 */
 
 // imports from the "DC1651A.ino" file
 #include <Arduino.h>
 #include <stdint.h>
-#include "Linduino.h"           //"hardware definitions for the Linduino"
-#include "LT_SPI.h"             //"Routines to communicate with ATmega328P's hardware SPI port."
+#include "Linduino.h"           // "hardware definitions for the Linduino"
+#include "LT_SPI.h"             // "Routines to communicate with ATmega328P's hardware SPI port."
 #include "UserInterface.h"
 #include "LTC68031.h"
 #include <SPI.h>
+
 #include "LTC6803_cmds.h"
-
-#define CS 4
-
-const uint8_t TOTAL_IC = 1;
-
+#include "Environment.h"
 
 uint16_t cell_codes[TOTAL_IC][12];
 uint16_t temp_codes[TOTAL_IC][3];
 uint8_t tx_cfg[TOTAL_IC][6];
-uint8_t rx_cfg[TOTAL_IC][7];
+uint8_t rx_cfg[TOTAL_IC][7];  // idk why this is larger than tx_cfg
+
 /**
  * given a config array sized [TOTAL_IC]x[6], 
  *  sets the value of the masked vars to match the corrosponding bits in 'val' 
@@ -48,7 +46,8 @@ void setup() {
   //-----------------------------------------------------------------------------
   // init
   //-----------------------------------------------------------------------------
-  pinMode(CS, OUTPUT);
+
+  pinMode(CS_PIN, OUTPUT);
 
   Serial.begin(9600);
 
@@ -59,8 +58,22 @@ void setup() {
   // setup
   //-----------------------------------------------------------------------------
 
-  //turn on watch dog timers
-  //setCFG(tx_cfg, 0, (1<<7), 0xFF);
+  /**
+   * index  : value : purpose
+   *  0,1,2 : 4     : set IC internal poll period to 130ms, no powerdowns on Vref.
+   *  3     : 0     : 12 cell mode
+   *  4     : 1     : enable level polling (because toggle polling sucks).
+   *  5,6   : 1     : disiable GPIO 2 & 1 pull down
+   * 
+   * notes:
+   *    - not using interrupts because were spam polling this anyways. and theres some
+   *      extra things to consider when using interrupts like masking disconnected 
+   *      cells, the act of actually catching a interrupt over sign a noisy line, etc.
+  */
+  setCFG(tx_cfg, 0, 0b111   , 0x4);   // 0,1,2
+  setCFG(tx_cfg, 0, 1<<3    , 0xFF);  // 3
+  setCFG(tx_cfg, 0, 1<<4    , 0xFF);  // 4
+  setCFG(tx_cfg, 0, 0b11<<5 , 0xFF);  // 5,6
 
   // init config array
   //    - enable watch dog timer
