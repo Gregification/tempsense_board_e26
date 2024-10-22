@@ -7,6 +7,7 @@ uint16_t ADCRangeTomV(uint16_t adc) {
     return ((adc - 512) * 3) >> 1;
 }
 
+
 /** 
  * calculates a 8 bit pec code from byte array using the datasheets process (ltc.17).
  * 
