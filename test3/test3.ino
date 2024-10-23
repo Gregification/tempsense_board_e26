@@ -59,33 +59,21 @@ void setup() {
   //-----------------------------------------------------------------------------
 
   /**
-   * index  : value : purpose
+   * index  : value : purpose of editing it
    *  0,1,2 : 4     : set IC internal poll period to 130ms, no powerdowns on Vref.
-   *  3     : 0     : 12 cell mode
-   *  4     : 1     : enable level polling (because toggle polling sucks).
-   *  5,6   : 1     : disiable GPIO 2 & 1 pull down
+   *  3     : 0     : 12 cell
+   *  4     : 1     : enable level polling (because the alternative, toggle polling, sucks).
+   *  5,6   : 1     : disiable GPIO 2 & 1
    * 
    * notes:
    *    - not using interrupts because were spam polling this anyways. and theres some
    *      extra things to consider when using interrupts like masking disconnected 
-   *      cells, the act of actually catching a interrupt over sign a noisy line, etc.
+   *      cells, the act of actually catching a interrupt over a noisy line, etc.
   */
-  setCFG(tx_cfg, 0, 0b111   , 0x4);   // 0,1,2
-  setCFG(tx_cfg, 0, 1<<3    , 0xFF);  // 3
-  setCFG(tx_cfg, 0, 1<<4    , 0xFF);  // 4
-  setCFG(tx_cfg, 0, 0b11<<5 , 0xFF);  // 5,6
-
-  // init config array
-  //    - enable watch dog timer
-  //    - enable level polling
-  //    -
-
-  // to measure mode
-
-  // set 500ms comparator period, no powerdown
-  //  -pg 24
-  // setCFG(tx_cfg, 0, 0x7, 4);
-
+  setCFG(tx_cfg, 0, 0b111   , 0b100);   // 0,1,2
+  setCFG(tx_cfg, 0, 1<<3    , 0xFF);    // 3
+  setCFG(tx_cfg, 0, 1<<4    , 0xFF);    // 4
+  setCFG(tx_cfg, 0, 0b11<<5 , 0xFF);    // 5,6
 }
 
 void loop() {
