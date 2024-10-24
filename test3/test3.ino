@@ -5,6 +5,8 @@
  * what this does:
  *    - periodicly polls the LTC for cell voltages, forwards that and related info to BMS.
  *    - adc conversions are non-distruptive of discharge
+ *    - LTC preforms a internal discharge during measurements
+ *    - because of internal discharge, there is logic to limit time discharging
  * 
  * what this does not do:
  *    - configure for # of operating cells
@@ -19,22 +21,7 @@
 #include "LTC68031.h"
 #include <SPI.h>
 
-#include "LTC6803_cmds.h"
-#include "Environment.h"
-
-uint16_t cell_codes[TOTAL_IC][12];
-uint16_t temp_codes[TOTAL_IC][3];
-uint8_t tx_cfg[TOTAL_IC][6];
-uint8_t rx_cfg[TOTAL_IC][7];  // idk why this is larger than tx_cfg
-
-/**
- * given a config array sized [TOTAL_IC]x[6], 
- *  sets the value of the masked vars to match the corrosponding bits in 'val' 
- *  while retaining the non masked values
- */
-void setCFG(uint8_t  cfg[][6], uint8_t reg, uint8_t mask, uint8_t val);
-
-
+#include "LTC6803_support.h"
 
 void print_config();
 void print_rxconfig();
@@ -47,12 +34,14 @@ void setup() {
   // init
   //-----------------------------------------------------------------------------
 
+  // slave select pin
   pinMode(CS_PIN, OUTPUT);
+  digitalWrite(CS_PIN, LOW);
 
   Serial.begin(9600);
 
   SPI.begin();  
-  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
+  SPI.beginTransaction(SPISettings(LTC6803_SPI_CLK_SPEED, MSBFIRST, SPI_MODE0));
 
   //-----------------------------------------------------------------------------
   // setup
@@ -64,24 +53,35 @@ void setup() {
    *  3     : 0     : 12 cell
    *  4     : 1     : enable level polling (because the alternative, toggle polling, sucks).
    *  5,6   : 1     : disiable GPIO 2 & 1
+   *  7     : ~     : no effect
    * 
    * notes:
    *    - not using interrupts because were spam polling this anyways. and theres some
    *      extra things to consider when using interrupts like masking disconnected 
    *      cells, the act of actually catching a interrupt over a noisy line, etc.
   */
-  setCFG(tx_cfg, 0, 0b111   , 0b100);   // 0,1,2
-  setCFG(tx_cfg, 0, 1<<3    , 0xFF);    // 3
-  setCFG(tx_cfg, 0, 1<<4    , 0xFF);    // 4
-  setCFG(tx_cfg, 0, 0b11<<5 , 0xFF);    // 5,6
+  setCFG(tx_cfg, -1, 0, 0xFF  , 0b1111'1000 | CDC);
+
+  // "mask" the input chanlles of unused cells, doc says this is required
+  //    unknown consequences if this isnt done (probably effects just the interrupt 
+  //    system we dont use anyways)
+  mask_unused_cells(tx_cfg);
+
 }
 
 void loop() {
-  // start cell voltage adc conversions non distruptive to discharge
-  //    and polls status
-  //  -pg 22, 18
-  spi_write_array(2, LTC6803_Cmd::STOWDC_ALL.arr);
-  delay(10); // wait for adcs to complete
+  // for period timing
+  unsigned long loop_start = millis();
+
+  // start cell discharge
+
+  // start cell voltage adc measurements, non distruptive to discharge
+  spi_tx_command(LTC6803_CMD_STOWAD_ALL);
+  
+  // wait for it to complete
+  delay(CELL_V_MEASURE_TIME_mS);
+
+  // stop cell discharge
 
   static int c = 0, a = 0, b;
   setCFG(tx_cfg, 0, 0xFF, 0xF1);
@@ -122,13 +122,6 @@ void loop() {
   a++;
   //delay(100);
  // Serial.println("------------------------------------------------");
-}
-
-void setCFG(uint8_t cfg[][6], uint8_t reg, uint8_t mask, uint8_t val)
-{
-  for(uint8_t i = 0; i < TOTAL_IC; i++){
-    cfg[i][reg] = (cfg[i][reg] & (~mask)) | (val & mask);
-  }  
 }
 
 void print_config()

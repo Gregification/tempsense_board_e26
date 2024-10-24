@@ -78,7 +78,7 @@ void setup() {
   //-----------------------------------------------------------------------------
   // init
   //-----------------------------------------------------------------------------
-  pinMode(CS_PIN, OUTPUT);
+  pinMode(CS, OUTPUT);
 
   Serial.begin(9600);
 
@@ -143,16 +143,7 @@ void loop() {
   a++;
   delay(100);
   Serial.println("------------------------------------------------");
-  // //reads cell voltage (mV)
-  // if(LTC6803_rdcv(TOTAL_IC, cell_codes)){
-  //   //uh oh
-  //   Serial.println("failed cell v read");
-  // } else {
-  //   //do stuff
-  //   // decide what gets discharged or what ever    
-  //   print_temp();
 
-  // }
 }
 
 void setCFG(uint8_t cfg[][6], uint8_t reg, uint8_t mask, uint8_t val)
@@ -186,8 +177,6 @@ void print_config()
     serial_print_hex(tx_cfg[current_ic][5]);
     Serial.print(", Calculated PEC: 0x");
     cfg_pec = pec8_calc(6,&tx_cfg[current_ic][0]);
-    serial_print_hex((uint8_t)(cfg_pec>>8));
-    Serial.print(", 0x");
     serial_print_hex((uint8_t)(cfg_pec));
     Serial.println();
   }
