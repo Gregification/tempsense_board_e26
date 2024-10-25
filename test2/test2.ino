@@ -88,11 +88,21 @@ void loop() {
   
   int error = 0; 
   if(error = LTC6803_rdcfg(TOTAL_IC, rx_cfg)){
-    // Serial.print("failed read, code : ");
-    // Serial.println(error);
-    // print_rxconfig();
+    Serial.print("failed read, code : ");
+    Serial.println(error);
+    print_rxconfig();
   }
   else {
+    bool a;
+      //reads cell voltage (mV)
+    if(a  = LTC6803_rdcv(TOTAL_IC, cell_codes)){
+      //uh oh
+      Serial.println("failed cell v read");
+    } else {
+      //do stuff
+      // decide what gets discharged or what ever
+    }
+
     c++;
     print_rxconfig();
     Serial.print("yippie ");
@@ -104,18 +114,9 @@ void loop() {
 
     LTC6803_stcvad();
     print_cells();
-      //reads cell voltage (mV)
-    if(LTC6803_rdcv(TOTAL_IC, cell_codes)){
-      //uh oh
-      Serial.println("failed cell v read");
-      delay(3000);
-    } else {
-      //do stuff
-      // decide what gets discharged or what ever
 
-    }
-
-    //delay(500);
+  if(!a)
+    delay(500);
     b = a;
     a = 0;
   }

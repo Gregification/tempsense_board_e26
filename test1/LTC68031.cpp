@@ -375,7 +375,7 @@ void spi_write_read(uint8_t tx_Data[],
 
   for (uint8_t i = 0; i < rx_len; i++)
   {
-    rx_data[i] = (uint8_t)spi_read(0xFF);
+    rx_data[i] = (uint8_t)spi_read(0xEE);
   }
 
 }
