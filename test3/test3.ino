@@ -82,16 +82,13 @@ void loop() {
   delay(CELL_V_MEASURE_TIME_mS);
 
   // stop cell discharge
-
   static int c = 0, a = 0, b;
   setCFG(tx_cfg, 0, 0xFF, 0xF1);
   LTC6803_wrcfg(TOTAL_IC, tx_cfg);
   
   int error = 0; 
   if(error = LTC6803_rdcfg(TOTAL_IC, rx_cfg)){
-    // Serial.print("failed read, code : ");
-    // Serial.println(error);
-    // print_rxconfig();
+    
   }
   else {
     c++;
@@ -219,8 +216,6 @@ void print_temp()
 
 void print_cells()
 {
-
-
   for (int current_ic = 0 ; current_ic < TOTAL_IC; current_ic++)
   {
     Serial.print(" IC ");
