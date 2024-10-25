@@ -53,7 +53,7 @@ void setup() {
   Serial.begin(9600);
 
   SPI.begin();  
-  SPI.beginTransaction(SPISettings(100, MSBFIRST, SPI_MODE0));
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
 
   //-----------------------------------------------------------------------------
   // setup
@@ -76,22 +76,21 @@ void setup() {
 }
 
 void loop() {
-  static int c = 0, a = 0, b;
-  setCFG(tx_cfg, 0, 0xFF, 0xF1);
-  LTC6803_wrcfg(TOTAL_IC, tx_cfg);
-  
   // start cell voltage adc conversions non distruptive to discharge
   //    and polls status
   //  -pg 22, 18
   spi_write_array(2, LTC6803_Cmd::STOWDC_ALL.arr);
   delay(10); // wait for adcs to complete
 
+  static int c = 0, a = 0, b;
+  setCFG(tx_cfg, 0, 0xFF, 0xF1);
+  LTC6803_wrcfg(TOTAL_IC, tx_cfg);
   
   int error = 0; 
   if(error = LTC6803_rdcfg(TOTAL_IC, rx_cfg)){
-    Serial.print("failed read, code : ");
-    Serial.println(error);
-    print_rxconfig();
+    // Serial.print("failed read, code : ");
+    // Serial.println(error);
+    // print_rxconfig();
   }
   else {
     c++;
@@ -109,6 +108,7 @@ void loop() {
     if(LTC6803_rdcv(TOTAL_IC, cell_codes)){
       //uh oh
       Serial.println("failed cell v read");
+      delay(3000);
     } else {
       //do stuff
       // decide what gets discharged or what ever
