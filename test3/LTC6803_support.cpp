@@ -67,16 +67,6 @@ void spi_tx(uint8_t len, uint8_t const arr[]) {
     }
 }
 
-void mask_unused_cells(uint8_t cfg[TOTAL_IC][6])
-    for(int ic = 0; ic < cfg; ic++){
-        //the cell mask ordering is kinda funky, so funky code
-
-        setCFG(cfg, i, 2, 0xF0, used_cells[i] << 4);
-
-        setCFG(cfg, i, 3, 0xFF, used_cells[i] >> 5);
-    }
-}
-
 void discharge(uint8_t cfg[TOTAL_IC][6], uint8_t ic_num, uint16_t cells){
     
     // cells [1, 8]

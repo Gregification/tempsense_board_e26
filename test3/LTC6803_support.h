@@ -37,9 +37,6 @@ void spi_rx(uint8_t len, uint8_t arr[]);
 /** sends array. slave transmission is ignored */
 void spi_tx(uint8_t len, uint8_t const arr[]);
 
-/** enables masks on the unused cells */
-void mask_unused_cells(uint8_t cfg[TOTAL_IC][6])
-
 /** enable/disables cell discharge. active high 
  * @param ic_num stack number of target ic, -1 for all of them
  * @param cells each bit represents the corrosponding cell 
