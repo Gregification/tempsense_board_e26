@@ -22,7 +22,7 @@
 
 #define CS 4
 
-const uint8_t TOTAL_IC = 1;
+const uint8_t TOTAL_IC = 2;
 
 
 uint16_t cell_codes[TOTAL_IC][12];
@@ -85,7 +85,8 @@ void loop() {
   static int c = 0, a = 0, b;
   setCFG(tx_cfg, 0, 0xFF, 0xF1);
   LTC6803_wrcfg(TOTAL_IC, tx_cfg);
-  
+
+
   int error = 0; 
   if(error = LTC6803_rdcfg(TOTAL_IC, rx_cfg)){
     Serial.print("failed read, code : ");
@@ -121,7 +122,8 @@ void loop() {
     a = 0;
   }
   a++;
-  //delay(100);
+
+  // delay(10);
  // Serial.println("------------------------------------------------");
 }
 
