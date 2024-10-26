@@ -1,5 +1,6 @@
 # Test of basic comms
 > code tested and works
+
 **target board:** arduino adafruit.
 
 **purpose:** test read/write of control registers<br>
