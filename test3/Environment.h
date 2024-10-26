@@ -46,9 +46,13 @@
  */
 #define CELL10_MODE_IF_POSSIBLE
 
+#define LOG_FILE_NAME               "log.csv"
+
 //--------------------------------------------------------------------
 // variable stuff
 //--------------------------------------------------------------------
+
+#define ADC_to_mV
 
 /**cells that are being used for each layer of the stack
  * e.g : only using 2 cells on the 5th chip in the stack

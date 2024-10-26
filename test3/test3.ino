@@ -24,11 +24,13 @@
 // imports from the "DC1651A.ino" file
 #include <Arduino.h>
 #include <stdint.h>
+#include <SdFat.h>
+#include <SPI.h>
+
 #include "Linduino.h"           // "hardware definitions for the Linduino"
 #include "LT_SPI.h"             // "Routines to communicate with ATmega328P's hardware SPI port."
 #include "UserInterface.h"
 #include "LTC68031.h"
-#include <SPI.h>
 
 #include "LTC6803_support.h"
 
@@ -52,6 +54,26 @@ void setup() {
   SPI.begin();  
   SPI.beginTransaction(SPISettings(LTC6803_SPI_CLK_SPEED, MSBFIRST, SPI_MODE0));
 
+  // file system
+  if(!flash.begin()){
+    Serial.println("setup: init: failed to init flash chip");
+    while(1)
+      yield();
+  }
+
+  // create file & headers
+  {
+    File32 log = fatfs.open(LOG_FILE_NAME, FILE_WRITE);
+    if(log){
+      log.prinln("Time(ms), C1, C2, C3, C4, C5, C6, C7, C8, C9, C10, C11, C12");
+      log.close();
+    } else {
+      Serial.println("unable to create log file");
+      log.close();
+      while(1) 
+        yield();
+    }
+  }
 
   //-----------------------------------------------------------------------------
   // POST
@@ -224,9 +246,15 @@ void loop() {
     // pec error
     Serial.println("failed cell v read");
   } else {
-    // write to file
+    // can bus code also goes here, somewhere
 
-    // can bus code goes here
+    // write to file
+    // using a new file handler every time just to test if it works, im guessing 
+    //    theres around a 200ms time between logging. seems reasonable?
+    File32 fh = ffs.open(LOG_FILE_NAME, FILE_WRITE);
+
+    fh.println(millis());
+
   }
 
   // clear voltage registers so we can tell if each adc is running or not by if
@@ -238,9 +266,11 @@ void loop() {
   //-----------------------------------------------------------------------------
 
   unsigned long current_time = millis();
-
+  
   if((current_time - loop_timer) < MEASUREMENT_PERIOD_mS){
-    delay(MEASUREMENT_PERIOD_mS - (current_time - loop_timer));
+    current_time = millis();
+    yield();
+    // delay(MEASUREMENT_PERIOD_mS - (current_time - loop_timer));
   }
 
   loop_timer = current_time;
