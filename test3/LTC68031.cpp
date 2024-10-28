@@ -185,8 +185,8 @@ int8_t LTC6803_rdcfg(uint8_t total_ic, //Number of ICs in the system
 void LTC6803_stcvad()
 {
   digitalWrite(CS_PIN, LOW);
-  spi_write(STCVDC_ALL_CODE);
-  spi_write(STCVDC_ALL_PEC);
+  spi_write(LTC6803_CMD_STCVDC_ALL.cmd.code);
+  spi_write(LTC6803_CMD_STCVDC_ALL.cmd.pec);
   digitalWrite(CS_PIN, HIGH);
 }
 

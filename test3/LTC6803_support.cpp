@@ -3,7 +3,7 @@
 #include <SPI.h>
 
 //ltc.14
-uint16_t adc_CV_to_V(uint16_t adc) {
+uint16_t adc_CV_to_mV(uint16_t adc) {
     // mV = (adc - 512 ) * 1.5
     return ((adc - 512) * 3) >> 1;
 }
@@ -52,7 +52,7 @@ void setCFG(uint8_t cfg[][6], uint8_t ic_num, uint8_t reg, uint8_t mask, uint8_t
 }
 
 void spi_tx_command(LTC6803_Cmd cmd){
-    spi_write(2, cmd.arr);
+    spi_tx(2, cmd.arr);
 }
 
 void spi_rx(uint8_t len, uint8_t arr[]){

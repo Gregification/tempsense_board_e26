@@ -21,10 +21,13 @@
  *        commands in a row before it risks over currenting the ic.
 */
 
+#include <stdint.h>
+#include <array>
+
 // imports from the "DC1651A.ino" file
 #include <Arduino.h>
-#include <stdint.h>
-#include <SdFat.h>
+#include <Adafruit_SPIFlash.h>  // fs
+#include <SdFat.h>              // fs
 #include <SPI.h>
 
 #include "Linduino.h"           // "hardware definitions for the Linduino"
@@ -33,6 +36,10 @@
 #include "LTC68031.h"
 
 #include "LTC6803_support.h"
+
+#include "flash_config.h"                   // fs
+Adafruit_SPIFlash flash(&flashTransport);   // fs
+FatVolume fatfs;                            // fs
 
 void print_config();
 void print_rxconfig();
@@ -49,7 +56,11 @@ void setup() {
   pinMode(CS_PIN, OUTPUT);
   digitalWrite(CS_PIN, LOW);
 
-  Serial.begin(9600);
+  // not used for now
+  // pinMode(STATUS_LED_PIN, OUTPUT);
+  // digitalWrite(STATUS_LED_PIN, LOW);
+
+  Serial.begin(SERIAL_BAUD);
 
   SPI.begin();  
   SPI.beginTransaction(SPISettings(LTC6803_SPI_CLK_SPEED, MSBFIRST, SPI_MODE0));
@@ -57,29 +68,11 @@ void setup() {
   // file system
   if(!flash.begin()){
     Serial.println("setup: init: failed to init flash chip");
-    while(1)
-      yield();
-  }
-
-  // create file & headers
-  {
-    File32 log = fatfs.open(LOG_FILE_NAME, FILE_WRITE);
-    if(log){
-      log.prinln("Time(ms), C1, C2, C3, C4, C5, C6, C7, C8, C9, C10, C11, C12");
-      log.close();
-    } else {
-      Serial.println("unable to create log file");
-      log.close();
-      while(1) 
-        yield();
-    }
   }
 
   //-----------------------------------------------------------------------------
   // POST
   //-----------------------------------------------------------------------------
-
-
 
   //-----------------------------------------------------------------------------
   // apply enviroment settings
@@ -149,7 +142,8 @@ void setup() {
 
     for(uint8_t i = 0; i < TOTAL_IC; i++){
       // reg 0
-      if(memcmp(tx_cfg[i][0], rx_cfg[i][0], 6)){
+      //   we ignore bit7 (wdt)
+      if((tx_cfg[i][0] << 1) != (rx_cfg[i][0] << 1)){
         error |= 1 << 7;
         error |= i;
         break;
@@ -157,7 +151,7 @@ void setup() {
 
       // reg 1 - 3
       for(uint8_t j = 1; j < 4; j++){
-        if(memcmp(tx_cfg[i][j], rx_cfg[i][j], 7)){
+        if(tx_cfg[i][j] != rx_cfg[i][j]){
           error |= i;
           break;
         }
@@ -196,29 +190,37 @@ void loop() {
 
     // cells to be discharged, all other cells are to stop discharging
     setCFG(tx_cfg, -1, 1, 0xFF, (1 << discharge_cycle) | (0x10 << discharge_cycle));
-    setCFG(tx_cfg, -1, 2, 0x0F, (1 << discharge_cycle);
+    setCFG(tx_cfg, -1, 2, 0x0F, (1 << discharge_cycle));
     LTC6803_wrcfg(TOTAL_IC, tx_cfg);
 
     // start cell voltage adc measurements, non distruptive to discharge
     // target only the cells being discharged
-    // id rather not make a giant switch statement so heres this indexing thing instead
-    static uint8_t cell_discharge_cmd_pec_codes[] = {
-      LTC6803_CMD_STCVDC_Cell1.cmd.pec,
-      LTC6803_CMD_STCVDC_Cell2.cmd.pec,
-      LTC6803_CMD_STCVDC_Cell3.cmd.pec,
-      LTC6803_CMD_STCVDC_Cell4.cmd.pec,
-      LTC6803_CMD_STCVDC_Cell5.cmd.pec,
-      LTC6803_CMD_STCVDC_Cell6.cmd.pec,
-      LTC6803_CMD_STCVDC_Cell7.cmd.pec,
-      LTC6803_CMD_STCVDC_Cell8.cmd.pec,
-      LTC6803_CMD_STCVDC_Cell9.cmd.pec,
-      LTC6803_CMD_STCVDC_Cell10.cmd.pec,
-      LTC6803_CMD_STCVDC_Cell11.cmd.pec,
-      LTC6803_CMD_STCVDC_Cell12.cmd.pec      
-    };
-    spi_tx(2, {0x60 + discharge_cycle+1, cell_discharge_cmd_pec_codes[discharge_cycle+1]});
-    spi_tx(2, {0x60 + discharge_cycle+5, cell_discharge_cmd_pec_codes[discharge_cycle+5]});
-    spi_tx(2, {0x60 + discharge_cycle+9, cell_discharge_cmd_pec_codes[discharge_cycle+9]});
+    switch(discharge_cycle){
+      case 0:
+        // dis cells 1,5,9
+        spi_tx_command(LTC6803_CMD_STCVDC_Cell1);
+        spi_tx_command(LTC6803_CMD_STCVDC_Cell5);
+        spi_tx_command(LTC6803_CMD_STCVDC_Cell9);
+        break;
+      case 1:
+        // dis cells 2,6,10
+        spi_tx_command(LTC6803_CMD_STCVDC_Cell2);
+        spi_tx_command(LTC6803_CMD_STCVDC_Cell6);
+        spi_tx_command(LTC6803_CMD_STCVDC_Cell10);
+        break;
+      case 2:
+        // dis cells 3,7,11
+        spi_tx_command(LTC6803_CMD_STCVDC_Cell3);
+        spi_tx_command(LTC6803_CMD_STCVDC_Cell7);
+        spi_tx_command(LTC6803_CMD_STCVDC_Cell11);
+        break;
+      case 3:
+        // dis cells 4,8,12
+        spi_tx_command(LTC6803_CMD_STCVDC_Cell4);
+        spi_tx_command(LTC6803_CMD_STCVDC_Cell8);
+        spi_tx_command(LTC6803_CMD_STCVDC_Cell12);
+        break;
+    }
 
     // wait for adc's to complete
     delay(13); // ltc.24    
@@ -251,9 +253,28 @@ void loop() {
     // write to file
     // using a new file handler every time just to test if it works, im guessing 
     //    theres around a 200ms time between logging. seems reasonable?
-    File32 fh = ffs.open(LOG_FILE_NAME, FILE_WRITE);
+    {
+      File32 log = fatfs.open(LOG_FILE_NAME, FILE_WRITE);
+      if(log){
+        // format
+        //    [time in ms],[C1],[C2],[C3],[C4],[C5],[C6],[C7],[C8],[C9],[C10],[C11],[C12],[C1 of IC2 ...]
+        // everything is in hex
+        
+        log.print(looptime, HEX);
 
-    fh.println(millis());
+        for(uint8_t ic = 0; ic < TOTAL_IC; ic++)
+          for(uint8_t s = 0; s < 12; s++){
+            log.print(",");
+            log.print(adc_CV_to_mV(cell_codes[ic][s]), HEX);
+          }
+
+        log.println();
+
+        log.close();
+      } else {
+        Serial.println("unable to write log file");
+      }
+    }
 
   }
 
@@ -268,9 +289,8 @@ void loop() {
   unsigned long current_time = millis();
   
   if((current_time - loop_timer) < MEASUREMENT_PERIOD_mS){
-    current_time = millis();
     yield();
-    // delay(MEASUREMENT_PERIOD_mS - (current_time - loop_timer));
+    current_time = millis();
   }
 
   loop_timer = current_time;

@@ -23,7 +23,7 @@
 void setCFG(uint8_t cfg[][6], uint8_t ic_num, uint8_t reg, uint8_t mask, uint8_t val);
 
 /** converts the returned value of the cell voltage ADC to mV */
-uint16_t adc_CV_to_V(uint16_t adc_output);
+uint16_t adc_CV_to_mV(uint16_t adc_output);
 
 /** LTC6803 pec generator */
 uint8_t pec8calc(uint8_t length, uint8_t data[]);

@@ -9,7 +9,7 @@
 #ifndef __ENVIROMENT_H__
 #define __ENVIROMENT_H__
 
-#include <array>
+#include <stdint.h>
 
 //--------------------------------------------------------------------
 // general settings
@@ -17,14 +17,18 @@
 // change what ever u want
 //--------------------------------------------------------------------
 
+#define SERIAL_BAUD     9600
+
 /** total number of LTCs daisy chained together */
-#define TOTAL_IC    1
+#define TOTAL_IC        1
 
 /** Chip Select pin to be used in SPI.
  *   - requires a modified "LTC6803.cpp" file
  * adafruit pins seen here (the dark turquoise color) : https://cdn-learn.adafruit.com/assets/assets/000/111/275/original/adafruit_products_Adafruit_Feather_M4_CAN_Pinout.png?1651520615
 */
-#define CS_PIN      4
+#define CS_PIN          4
+
+#define STATUS_LED_PIN  10
 
 /** minimum time between measurements of any single cell */
 #define MEASUREMENT_PERIOD_mS       ((unsigned long)1000)
@@ -32,7 +36,7 @@
 /** the max clock speed
  * special board considerations needed for speeds above 1Mhz
  */
-#define LTC6803_SPI_CLK_SPEED       ((uint32_t)950'000)
+#define LTC6803_SPI_CLK_SPEED       ((uint32_t)950000)
 
 /** dummy value to transfer over spi when intending to read */
 #define SPI_TRANSFER_DUMMY          ((uint8_t)0xFF)
@@ -59,20 +63,20 @@
  *  meaning that cells 0 and 1 are used,
  *    "used_cells[4] = 2;"
 */
-const std::array<uint8_t, TOTAL_IC> used_cells = {
+const uint8_t used_cells[TOTAL_IC] = {
     12
 };
 
 /** received cell codes */
-uint16_t cell_codes     [TOTAL_IC][12];
+extern uint16_t cell_codes     [TOTAL_IC][12];
 
 /** received temp codes */
-uint16_t temp_codes     [TOTAL_IC][3];
+extern uint16_t temp_codes     [TOTAL_IC][3];
 
 /** transmitted configurations */
-uint8_t tx_cfg          [TOTAL_IC][6];
+extern uint8_t tx_cfg          [TOTAL_IC][6];
 
 /** received configuraitons */
-uint8_t rx_cfg          [TOTAL_IC][7];  // idk why this is larger than tx_cfg
+extern uint8_t rx_cfg          [TOTAL_IC][7];  // idk why this is larger than tx_cfg
 
 #endif // __ENVIROMENT_H__
