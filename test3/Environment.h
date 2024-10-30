@@ -6,8 +6,8 @@
  * - keep units in the macros so that limits are clear
  */
 
-#ifndef __ENVIROMENT_H__
-#define __ENVIROMENT_H__
+#ifndef ENVIROMENT_H__
+#define ENVIROMENT_H__
 
 #include <stdint.h>
 
@@ -30,19 +30,23 @@
 
 #define STATUS_LED_PIN  10
 
-/** minimum time between measurements of any single cell */
+#define LOG_DUMP_PIN    11
+
+#define LOG_DELETE_PIN  15
+
+// /** minimum time between measurements of any single cell */
 #define MEASUREMENT_PERIOD_mS       ((unsigned long)1000)
 
-/** the max clock speed
- * special board considerations needed for speeds above 1Mhz
- */
+// /** the max clock speed
+//  * special board considerations needed for speeds above 1Mhz
+//  */
 #define LTC6803_SPI_CLK_SPEED       ((uint32_t)950000)
 
-/** dummy value to transfer over spi when intending to read */
-#define SPI_TRANSFER_DUMMY          ((uint8_t)0xFF)
+// /** dummy value to transfer over spi when intending to read */
+#define SPI_TRANSFER_DUMMY          0xFF
 
 /** discharge cells during voltage measurements*/
-#define DISCHARGE_WHEN_ADC
+// #define DISCHARGE_WHEN_ADC
 
 /** use 10 cell mode when possible
  * pro: LTC will save some power and time
@@ -79,4 +83,4 @@ extern uint8_t tx_cfg          [TOTAL_IC][6];
 /** received configuraitons */
 extern uint8_t rx_cfg          [TOTAL_IC][7];  // idk why this is larger than tx_cfg
 
-#endif // __ENVIROMENT_H__
+#endif // ENVIROMENT_H__

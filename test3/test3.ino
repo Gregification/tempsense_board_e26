@@ -47,6 +47,13 @@ void serial_print_hex(uint8_t data);
 void print_temp();
 void print_cells();
 
+void slow_blink(uint8_t);
+void fast_blink(uint8_t);
+void end_blink(){ delay(1500);}
+
+void dump_logs_to_serial();
+void delete_logs();
+
 void setup() {
   //-----------------------------------------------------------------------------
   // init
@@ -57,8 +64,8 @@ void setup() {
   digitalWrite(CS_PIN, LOW);
 
   // not used for now
-  // pinMode(STATUS_LED_PIN, OUTPUT);
-  // digitalWrite(STATUS_LED_PIN, LOW);
+  pinMode(STATUS_LED_PIN, OUTPUT);
+  digitalWrite(STATUS_LED_PIN, LOW);
 
   Serial.begin(SERIAL_BAUD);
 
@@ -73,6 +80,9 @@ void setup() {
   //-----------------------------------------------------------------------------
   // POST
   //-----------------------------------------------------------------------------
+
+  slow_blink(2);
+  end_blink();
 
   //-----------------------------------------------------------------------------
   // apply enviroment settings
@@ -132,6 +142,8 @@ void setup() {
 
   // - keep trying to write untill the received config is the same as the transmitted
   while(true){
+    yield();
+    
     LTC6803_wrcfg(TOTAL_IC, tx_cfg);
     LTC6803_rdcfg(TOTAL_IC, rx_cfg);
 
@@ -142,8 +154,8 @@ void setup() {
 
     for(uint8_t i = 0; i < TOTAL_IC; i++){
       // reg 0
-      //   we ignore bit7 (wdt)
-      if((tx_cfg[i][0] << 1) != (rx_cfg[i][0] << 1)){
+      //   we ignore WDT and the GPIO
+      if((tx_cfg[i][0] & 0x1F) != (rx_cfg[i][0] & 0x1F)){
         error |= 1 << 7;
         error |= i;
         break;
@@ -161,21 +173,36 @@ void setup() {
     if(error == 0){
       break;
     } else {
-      Serial.print("setup ");
       Serial.print(__LINE__);
-      Serial.print(": error writing config, trying again. error 0x");
+      Serial.print(" error writing config, trying again. error 0x");
       Serial.println(error, HEX);
-
-      delay(200);
     }
 
+    slow_blink(1);
+    end_blink();
   }
 
+  Serial.print(__LINE__);
   Serial.print("setup complete :) . time taken (mS):");
   Serial.println(millis());
 }
 
 void loop() {
+
+  if(digitalRead(LOG_DUMP_PIN) == HIGH)
+    dump_logs_to_serial();
+  else if(digitalRead(LOG_DELETE_PIN) == HIGH) {
+    slow_blink(5);
+    end_blink();
+
+    static uint8_t toggler;
+    if(toggler & 1 == 0){
+      delete_logs();
+    }
+
+    toggler++;
+  }
+
   // for period timing
   static unsigned long loop_timer = 0;
 
@@ -233,7 +260,7 @@ void loop() {
 
   #else
   // measure all cells
-  spi_tx_command(LTC6803_Cmd_STCVDC_ALL);
+  spi_tx_command(LTC6803_CMD_STCVDC_ALL);
 
   // wait for adc's to complete
   delay(13); // ltc.24
@@ -246,7 +273,11 @@ void loop() {
 
   if(LTC6803_rdcv(TOTAL_IC, cell_codes)){
     // pec error
+    Serial.print(__LINE__);
     Serial.println("failed cell v read");
+
+    fast_blink(2);
+    end_blink();
   } else {
     // can bus code also goes here, somewhere
 
@@ -260,7 +291,7 @@ void loop() {
         //    [time in ms],[C1],[C2],[C3],[C4],[C5],[C6],[C7],[C8],[C9],[C10],[C11],[C12],[C1 of IC2 ...]
         // everything is in hex
         
-        log.print(looptime, HEX);
+        log.print(loop_timer, HEX);
 
         for(uint8_t ic = 0; ic < TOTAL_IC; ic++)
           for(uint8_t s = 0; s < 12; s++){
@@ -272,7 +303,11 @@ void loop() {
 
         log.close();
       } else {
-        Serial.println("unable to write log file");
+        Serial.print(__LINE__);
+        Serial.println(" unable to write log file");
+        
+        fast_blink(1);
+        end_blink();
       }
     }
 
@@ -407,4 +442,30 @@ void print_cells()
     Serial.println();
   }
   Serial.println();
+}
+
+void slow_blink(uint8_t count){
+  for(;count > 0; count--){
+    digitalWrite(STATUS_LED_PIN, HIGH);
+    delay(800);
+    digitalWrite(STATUS_LED_PIN, LOW);
+    delay(800);
+  }
+}
+
+void fast_blink(uint8_t count){
+  for(;count > 0; count--){
+    digitalWrite(STATUS_LED_PIN, HIGH);
+    delay(300);
+    digitalWrite(STATUS_LED_PIN, LOW);
+    delay(300);
+  }
+}
+
+void dump_logs_to_serial(){
+
+}
+
+void delete_logs(){
+
 }

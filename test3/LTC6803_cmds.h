@@ -6,8 +6,10 @@
  * - using a bunch of macros because its a industry standard
  */
 
-#ifndef __LTC6803_CMDS_H
-#define __LTC6803_CMDS_H
+#ifndef LTC6803_CMDS_H
+#define LTC6803_CMDS_H
+
+#include <stdint.h>
 
 union LTC6803_Cmd {
     struct Cmd_s{
