@@ -26,21 +26,21 @@
  *   - requires a modified "LTC6803.cpp" file
  * adafruit pins seen here (the dark turquoise color) : https://cdn-learn.adafruit.com/assets/assets/000/111/275/original/adafruit_products_Adafruit_Feather_M4_CAN_Pinout.png?1651520615
 */
-#define CS_PIN          4
+#define CS_PIN                      4
 
-#define STATUS_LED_PIN  10
+#define STATUS_LED_PIN              10
 
-#define LOG_DUMP_PIN    11
+#define LOG_DUMP_PIN                11
 
-#define LOG_DELETE_PIN  15
+#define LOG_DELETE_PIN              15
 
 // /** minimum time between measurements of any single cell */
-#define MEASUREMENT_PERIOD_mS       ((unsigned long)1000)
+#define MEASUREMENT_PERIOD_mS       ((unsigned long)1500)
 
 // /** the max clock speed
 //  * special board considerations needed for speeds above 1Mhz
 //  */
-#define LTC6803_SPI_CLK_SPEED       ((uint32_t)950000)
+#define LTC6803_SPI_CLK_SPEED       ((uint32_t)1000)
 
 // /** dummy value to transfer over spi when intending to read */
 #define SPI_TRANSFER_DUMMY          0xFF
@@ -52,7 +52,7 @@
  * pro: LTC will save some power and time
  * con: LTC will not be able to measure 12 cells without resetting the configutaion
  */
-#define CELL10_MODE_IF_POSSIBLE
+// #define CELL10_MODE_IF_POSSIBLE
 
 #define LOG_FILE_NAME               "log.csv"
 

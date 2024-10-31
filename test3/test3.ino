@@ -47,6 +47,7 @@ void serial_print_hex(uint8_t data);
 void print_temp();
 void print_cells();
 
+bool log_dump_controler();
 void slow_blink(uint8_t);
 void fast_blink(uint8_t);
 void end_blink(){ delay(1500);}
@@ -58,28 +59,44 @@ void setup() {
   //-----------------------------------------------------------------------------
   // init
   //-----------------------------------------------------------------------------
+  Serial.begin(SERIAL_BAUD);
+  Serial.println("test3 start");
 
   // slave select pin
   pinMode(CS_PIN, OUTPUT);
   digitalWrite(CS_PIN, LOW);
 
-  // not used for now
+  pinMode(LOG_DUMP_PIN, INPUT);
+  pinMode(LOG_DELETE_PIN, INPUT);
+
   pinMode(STATUS_LED_PIN, OUTPUT);
   digitalWrite(STATUS_LED_PIN, LOW);
-
-  Serial.begin(SERIAL_BAUD);
 
   SPI.begin();  
   SPI.beginTransaction(SPISettings(LTC6803_SPI_CLK_SPEED, MSBFIRST, SPI_MODE0));
 
-  // file system
-  if(!flash.begin()){
-    Serial.println("setup: init: failed to init flash chip");
-  }
-
   //-----------------------------------------------------------------------------
   // POST
   //-----------------------------------------------------------------------------
+
+  // file system
+  if(!flash.begin()){
+    Serial.println("setup: init: failed to init flash chip");
+    while (1) {
+      yield();
+      fast_blink(1);
+    }
+  }
+
+  if (!fatfs.begin(&flash)) {
+    Serial.println("Error, failed to mount newly formatted filesystem!");
+    Serial.println(
+        "Was the flash chip formatted with the fatfs_format example?");
+    while (1) {
+      delay(1);
+    }
+  }
+  Serial.println("Mounted filesystem!");
 
   slow_blink(2);
   end_blink();
@@ -132,7 +149,7 @@ void setup() {
     }
 
   #endif
-  
+
   //-----------------------------------------------------------------------------
   // write config
   //  - all this fluff is to ensure the config was actually written
@@ -178,30 +195,18 @@ void setup() {
       Serial.println(error, HEX);
     }
 
-    slow_blink(1);
-    end_blink();
+    fast_blink(1);
   }
-
   Serial.print(__LINE__);
   Serial.print("setup complete :) . time taken (mS):");
   Serial.println(millis());
+  delay(20000);
 }
 
 void loop() {
 
-  if(digitalRead(LOG_DUMP_PIN) == HIGH)
-    dump_logs_to_serial();
-  else if(digitalRead(LOG_DELETE_PIN) == HIGH) {
-    slow_blink(5);
-    end_blink();
-
-    static uint8_t toggler;
-    if(toggler & 1 == 0){
-      delete_logs();
-    }
-
-    toggler++;
-  }
+  if(log_dump_controler())
+    return;
 
   // for period timing
   static unsigned long loop_timer = 0;
@@ -274,10 +279,9 @@ void loop() {
   if(LTC6803_rdcv(TOTAL_IC, cell_codes)){
     // pec error
     Serial.print(__LINE__);
-    Serial.println("failed cell v read");
-
-    fast_blink(2);
-    end_blink();
+    Serial.println("cell v PEC failed");
+    print_cells();
+    fast_blink(1);
   } else {
     // can bus code also goes here, somewhere
 
@@ -296,19 +300,17 @@ void loop() {
         for(uint8_t ic = 0; ic < TOTAL_IC; ic++)
           for(uint8_t s = 0; s < 12; s++){
             log.print(",");
-            log.print(adc_CV_to_mV(cell_codes[ic][s]), HEX);
+            log.print(adc_CV_to_mV(cell_codes[ic][s]));
           }
 
         log.println();
-
         log.close();
+        // delay(5000);
       } else {
         Serial.print(__LINE__);
         Serial.println(" unable to write log file");
-        
-        fast_blink(1);
-        end_blink();
       }
+
     }
 
   }
@@ -444,12 +446,49 @@ void print_cells()
   Serial.println();
 }
 
+bool log_dump_controler(){
+  static uint8_t toggler;
+
+  if(digitalRead(LOG_DUMP_PIN)){
+    slow_blink(2);
+
+    if(digitalRead(LOG_DUMP_PIN)){
+      Serial.println("log dump");
+      dump_logs_to_serial();
+      return false;
+    }
+    return true;
+  } else if(digitalRead(LOG_DELETE_PIN)) {
+    
+    Serial.println("continueing to hold LOG_DELETE_PIN high will delete the logs");
+    fast_blink(5);
+    end_blink();
+    
+    if(toggler == 2 && digitalRead(LOG_DELETE_PIN)){
+      Serial.println("log delete");
+
+      delete_logs();
+
+      slow_blink(2);
+      toggler = 0;
+      
+    } else 
+      toggler++;
+
+    return true;
+  } else {
+    toggler = 0;
+  }
+
+  return false;
+}
+
 void slow_blink(uint8_t count){
   for(;count > 0; count--){
     digitalWrite(STATUS_LED_PIN, HIGH);
-    delay(800);
+    delay(1200);
     digitalWrite(STATUS_LED_PIN, LOW);
-    delay(800);
+    delay(1200);
   }
 }
 
@@ -463,9 +502,14 @@ void fast_blink(uint8_t count){
 }
 
 void dump_logs_to_serial(){
-
+  File32 logs = fatfs.open(LOG_FILE_NAME);
+  while(logs.available()){
+    char c = logs.read();
+    Serial.print(c);
+  }
+  logs.close();
 }
 
 void delete_logs(){
-
+  fatfs.remove(LOG_FILE_NAME);
 }
