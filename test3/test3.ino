@@ -101,6 +101,8 @@ void setup() {
     Serial.println("Mounted filesystem!");
   #endif
 
+  spi_tx_command(LTC6803_CMD_DAGN);
+
   slow_blink(2);
   end_blink();
 
@@ -125,20 +127,20 @@ void setup() {
    * index  : value : purpose of editing it
    *  0-7   : 0     : ensure discharge disabled, cells 1-8
    */
-  // setCFG(tx_cfg, -1, 1, 0xFF, 0x00);
+  setCFG(tx_cfg, -1, 1, 0xFF, 0x00);
 
   /** register 2
    * index  : value : purpose of editing it
    *  0-3   : 0     : ensure discharge disabled, cells 9-12
    *  4-7   : 1     : disable OV/UV interrupts, cells 1-4
    */
-  // setCFG(tx_cfg, -1, 2, 0xFF, 0xF0);
+  setCFG(tx_cfg, -1, 2, 0xFF, 0xF0);
 
   /** register 3
    * index  : value : purpose of editing it
    *  0-7   : 1     : disable OV/UV interrupts, cells 5-12
    */
-  // setCFG(tx_cfg, -1, 2, 0xFF, 0xFF);
+  setCFG(tx_cfg, -1, 2, 0xFF, 0xFF);
 
   // apply stack level speficic settings
   #ifdef CELL10_MODE_IF_POSSIBLE // the only stack specific setting
@@ -222,6 +224,14 @@ void loop() {
       return;
 
   #endif
+
+  // incase the LTC reset itslef for some reason (unconnecting a cell, under volt, etc ...)
+  {
+    static uint8_t count = 0;
+    count++;
+    if((count & 7) == 0) // every 8 reads rewrite the configuration
+      LTC6803_wrcfg(TOTAL_IC, tx_cfg);
+  }
 
   // for period timing
   static unsigned long loop_timer = 0;
@@ -338,7 +348,6 @@ void loop() {
   // clear voltage registers so we can tell if each adc is running or not by if
   // the respective register is zero
   spi_tx_command(LTC6803_CMD_STCVAD_Clear);
-
 
   //-----------------------------------------------------------------------------
   // loop timing

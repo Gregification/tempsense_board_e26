@@ -37,11 +37,6 @@ void spi_rx(uint8_t len, uint8_t arr[]);
 /** sends array. slave transmission is ignored */
 void spi_tx(uint8_t len, uint8_t const arr[]);
 
-/** enable/disables cell discharge. active high 
- * @param ic_num stack number of target ic, -1 for all of them
- * @param cells each bit represents the corrosponding cell 
- *      e.g: cell 1 is bit0, 
-*/
-void discharge(uint8_t cfg[TOTAL_IC][6], uint8_t ic_num, uint16_t cells);
+void LTC6803_rddiag(uint8_t total_ic, uint8_t r_diag[][3]);
 
 #endif // __LTC6803_SUPPORT_H__

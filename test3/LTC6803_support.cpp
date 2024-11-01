@@ -42,10 +42,9 @@ uint8_t pec8calc(uint8_t len, uint8_t data[]) {
 
 void setCFG(uint8_t cfg[][6], uint8_t ic_num, uint8_t reg, uint8_t mask, uint8_t val)
 {
-    if(ic_num < 0){
-        for(uint8_t i = 0; i < TOTAL_IC; i++){
-            cfg[i][reg] = (cfg[i][reg] & (~mask)) | (val & mask);
-        }
+    if(ic_num >= TOTAL_IC) { // if invalid number
+        for(ic_num = 0; ic_num < TOTAL_IC; ic_num++)
+            cfg[ic_num][reg] = (cfg[ic_num][reg] & (~mask)) | (val & mask);
     } else {
         cfg[ic_num][reg] = (cfg[ic_num][reg] & (~mask)) | (val & mask);
     }
@@ -81,4 +80,14 @@ void discharge(uint8_t cfg[TOTAL_IC][6], uint8_t ic_num, uint16_t cells){
 
     // cells [9, 12]
     setCFG(cfg, ic_num, 1, 0xFF, cells >> 9);
+}
+
+void LTC6803_rddiag(uint8_t total_ic, uint8_t rx_diag[][2]){
+
+    // uint8_t* rx_data = malloc((3 * total_ic,));
+
+    // digitalWrite(CS_PIN, LOW);
+    // spi_tx(2, LTC6803_CMD_RDDGNR.arr);
+    // spi_rx();
+    // digitalWrite(CS_PIN, LOW);
 }

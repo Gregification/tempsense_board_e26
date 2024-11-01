@@ -85,6 +85,6 @@ extern uint16_t temp_codes     [TOTAL_IC][3];
 extern uint8_t tx_cfg          [TOTAL_IC][6];
 
 /** received configuraitons */
-extern uint8_t rx_cfg          [TOTAL_IC][7];  // idk why this is larger than tx_cfg
+extern uint8_t rx_cfg          [TOTAL_IC][7];  // +1 in size to account for pec codes
 
 #endif // ENVIROMENT_H__
