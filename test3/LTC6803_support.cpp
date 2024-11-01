@@ -52,7 +52,14 @@ void setCFG(uint8_t cfg[][6], uint8_t ic_num, uint8_t reg, uint8_t mask, uint8_t
 }
 
 void spi_tx_command(LTC6803_Cmd cmd){
+    digitalWrite(CS_PIN, LOW);
     spi_tx(2, cmd.arr);
+
+    //wait while SDO is low
+    // while(digitalRead(SPI_MISO_PIN) == LOW)
+    //     ;
+
+    digitalWrite(CS_PIN, HIGH);
 }
 
 void spi_rx(uint8_t len, uint8_t arr[]){

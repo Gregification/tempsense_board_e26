@@ -1,13 +1,8 @@
 /**
  * MODIFIED
  * 
- * - added custom chip select logic by replacing linduino specific CS toggling
- *    with generic arduino pin toggling.
- * - changed all voltage measurement code to use discharge premitted measurements.
+ * - custom chip select logic, remember to set pin direction!
  */
-
-#include "Environment.h"
-#include "LTC6803_cmds.h"
 
 /*!
   LTC6803-1 Multicell Battery Monitor
@@ -80,6 +75,8 @@ Copyright 2015 Linear Technology Corp. (LTC)
 #include "LT_SPI.h"
 #include "LTC68031.h"
 #include <SPI.h>
+
+#include "Environment.h"
 
 /***************************************************************************
 ***********6803 Functions***************************************************
@@ -185,8 +182,8 @@ int8_t LTC6803_rdcfg(uint8_t total_ic, //Number of ICs in the system
 void LTC6803_stcvad()
 {
   digitalWrite(CS_PIN, LOW);
-  spi_write(LTC6803_CMD_STCVDC_ALL.cmd.code);
-  spi_write(LTC6803_CMD_STCVDC_ALL.cmd.pec);
+  spi_write(0x10);
+  spi_write(0xB0);
   digitalWrite(CS_PIN, HIGH);
 }
 

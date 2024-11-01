@@ -34,13 +34,15 @@
 
 #define LOG_DELETE_PIN              15
 
-// /** minimum time between measurements of any single cell */
-#define MEASUREMENT_PERIOD_mS       ((unsigned long)1500)
+#define SPI_MISO_PIN                23
 
-// /** the max clock speed
-//  * special board considerations needed for speeds above 1Mhz
-//  */
-#define LTC6803_SPI_CLK_SPEED       ((uint32_t)1000)
+// /** minimum time between measurements of any single cell */
+#define MEASUREMENT_PERIOD_mS       ((unsigned long)1000)
+
+/** the max edges per second
+ * special board considerations needed for speeds above 1Mhz
+ */
+#define LTC6803_SPI_CLK_SPEED       ((uint32_t)10000)
 
 // /** dummy value to transfer over spi when intending to read */
 #define SPI_TRANSFER_DUMMY          0xFF
@@ -53,6 +55,8 @@
  * con: LTC will not be able to measure 12 cells without resetting the configutaion
  */
 // #define CELL10_MODE_IF_POSSIBLE
+
+// #define LOG_ENABLED
 
 #define LOG_FILE_NAME               "log.csv"
 

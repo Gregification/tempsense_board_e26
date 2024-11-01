@@ -22,7 +22,7 @@
 
 #define CS 4
 
-const uint8_t TOTAL_IC = 2;
+const uint8_t TOTAL_IC = 1;
 
 
 uint16_t cell_codes[TOTAL_IC][12];
@@ -53,7 +53,7 @@ void setup() {
   Serial.begin(9600);
 
   SPI.begin();  
-  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
+  SPI.beginTransaction(SPISettings(1000, MSBFIRST, SPI_MODE0));
 
   //-----------------------------------------------------------------------------
   // setup
@@ -79,13 +79,12 @@ void loop() {
   // start cell voltage adc conversions non distruptive to discharge
   //    and polls status
   //  -pg 22, 18
-  spi_write_array(2, LTC6803_Cmd::STOWDC_ALL.arr);
-  delay(10); // wait for adcs to complete
+  // spi_write_array(2, LTC6803_Cmd::STOWDC_ALL.arr);
+  // delay(10); // wait for adcs to complete
 
   static int c = 0, a = 0, b;
   setCFG(tx_cfg, 0, 0xFF, 0xF1);
   LTC6803_wrcfg(TOTAL_IC, tx_cfg);
-
 
   int error = 0; 
   if(error = LTC6803_rdcfg(TOTAL_IC, rx_cfg)){

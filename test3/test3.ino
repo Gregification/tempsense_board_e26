@@ -64,13 +64,14 @@ void setup() {
 
   // slave select pin
   pinMode(CS_PIN, OUTPUT);
-  digitalWrite(CS_PIN, LOW);
+  digitalWrite(CS_PIN, HIGH);
+
+  pinMode(STATUS_LED_PIN, OUTPUT);
+  digitalWrite(STATUS_LED_PIN, LOW);
 
   pinMode(LOG_DUMP_PIN, INPUT);
   pinMode(LOG_DELETE_PIN, INPUT);
 
-  pinMode(STATUS_LED_PIN, OUTPUT);
-  digitalWrite(STATUS_LED_PIN, LOW);
 
   SPI.begin();  
   SPI.beginTransaction(SPISettings(LTC6803_SPI_CLK_SPEED, MSBFIRST, SPI_MODE0));
@@ -79,24 +80,26 @@ void setup() {
   // POST
   //-----------------------------------------------------------------------------
 
-  // file system
-  if(!flash.begin()){
-    Serial.println("setup: init: failed to init flash chip");
-    while (1) {
-      yield();
-      fast_blink(1);
+  #ifdef LOG_ENABLED
+    // file system
+    if(!flash.begin()){
+      Serial.println("setup: init: failed to init flash chip");
+      while (1) {
+        yield();
+        fast_blink(1);
+      }
     }
-  }
 
-  if (!fatfs.begin(&flash)) {
-    Serial.println("Error, failed to mount newly formatted filesystem!");
-    Serial.println(
-        "Was the flash chip formatted with the fatfs_format example?");
-    while (1) {
-      delay(1);
+    if (!fatfs.begin(&flash)) {
+      Serial.println("Error, failed to mount newly formatted filesystem!");
+      Serial.println("Was the flash chip formatted with the fatfs_format example?");
+
+      while (1) {
+        yield();
+      }
     }
-  }
-  Serial.println("Mounted filesystem!");
+    Serial.println("Mounted filesystem!");
+  #endif
 
   slow_blink(2);
   end_blink();
@@ -122,20 +125,20 @@ void setup() {
    * index  : value : purpose of editing it
    *  0-7   : 0     : ensure discharge disabled, cells 1-8
    */
-  setCFG(tx_cfg, -1, 1, 0xFF, 0);
+  // setCFG(tx_cfg, -1, 1, 0xFF, 0x00);
 
   /** register 2
    * index  : value : purpose of editing it
    *  0-3   : 0     : ensure discharge disabled, cells 9-12
    *  4-7   : 1     : disable OV/UV interrupts, cells 1-4
    */
-  setCFG(tx_cfg, -1, 2, 0xFF, 0xF0);
+  // setCFG(tx_cfg, -1, 2, 0xFF, 0xF0);
 
   /** register 3
    * index  : value : purpose of editing it
    *  0-7   : 1     : disable OV/UV interrupts, cells 5-12
    */
-  setCFG(tx_cfg, -1, 2, 0xFF, 0xFF);
+  // setCFG(tx_cfg, -1, 2, 0xFF, 0xFF);
 
   // apply stack level speficic settings
   #ifdef CELL10_MODE_IF_POSSIBLE // the only stack specific setting
@@ -185,28 +188,40 @@ void setup() {
           break;
         }
       }
+
+      if(error != 0){
+        Serial.print(__LINE__);
+        Serial.print(" error writing config to IC:");
+        Serial.print(i);
+        Serial.print(" , trying again. error 0x");
+        Serial.println(error, HEX);
+        break;
+      }
     } 
 
     if(error == 0){
       break;
-    } else {
-      Serial.print(__LINE__);
-      Serial.print(" error writing config, trying again. error 0x");
-      Serial.println(error, HEX);
     }
 
     fast_blink(1);
   }
+
   Serial.print(__LINE__);
   Serial.print("setup complete :) . time taken (mS):");
   Serial.println(millis());
-  delay(20000);
+  print_config();
+  print_rxconfig();
+  delay(100);
 }
 
 void loop() {
 
-  if(log_dump_controler())
-    return;
+  #ifdef LOG_ENABLED
+
+    if(log_dump_controler())
+      return;
+
+  #endif
 
   // for period timing
   static unsigned long loop_timer = 0;
@@ -268,7 +283,7 @@ void loop() {
   spi_tx_command(LTC6803_CMD_STCVDC_ALL);
 
   // wait for adc's to complete
-  delay(13); // ltc.24
+  delay(14); // ltc.24
 
   #endif
   
@@ -283,35 +298,40 @@ void loop() {
     print_cells();
     fast_blink(1);
   } else {
+    print_cells();
     // can bus code also goes here, somewhere
+    
+    #ifdef LOG_ENABLED
 
-    // write to file
-    // using a new file handler every time just to test if it works, im guessing 
-    //    theres around a 200ms time between logging. seems reasonable?
-    {
-      File32 log = fatfs.open(LOG_FILE_NAME, FILE_WRITE);
-      if(log){
-        // format
-        //    [time in ms],[C1],[C2],[C3],[C4],[C5],[C6],[C7],[C8],[C9],[C10],[C11],[C12],[C1 of IC2 ...]
-        // everything is in hex
-        
-        log.print(loop_timer, HEX);
+      // write to file
+      // using a new file handler every time just to test if it works, im guessing 
+      //    theres around a 200ms time between logging. seems reasonable?
+      {
+        File32 log = fatfs.open(LOG_FILE_NAME, FILE_WRITE);
+        if(log){
+          // format
+          //    [time in ms],[C1],[C2],[C3],[C4],[C5],[C6],[C7],[C8],[C9],[C10],[C11],[C12],[C1 of IC2 ...]
+          // everything is in hex
+          
+          log.print(loop_timer, HEX);
 
-        for(uint8_t ic = 0; ic < TOTAL_IC; ic++)
-          for(uint8_t s = 0; s < 12; s++){
-            log.print(",");
-            log.print(adc_CV_to_mV(cell_codes[ic][s]));
-          }
+          for(uint8_t ic = 0; ic < TOTAL_IC; ic++)
+            for(uint8_t s = 0; s < 12; s++){
+              log.print(",");
+              log.print(adc_CV_to_mV(cell_codes[ic][s]));
+            }
 
-        log.println();
-        log.close();
-        // delay(5000);
-      } else {
-        Serial.print(__LINE__);
-        Serial.println(" unable to write log file");
+          log.println();
+          log.close();
+          // delay(5000);
+        } else {
+          Serial.print(__LINE__);
+          Serial.println(" unable to write log file");
+        }
+
       }
+    #endif
 
-    }
 
   }
 
@@ -319,13 +339,14 @@ void loop() {
   // the respective register is zero
   spi_tx_command(LTC6803_CMD_STCVAD_Clear);
 
+
   //-----------------------------------------------------------------------------
   // loop timing
   //-----------------------------------------------------------------------------
 
   unsigned long current_time = millis();
   
-  if((current_time - loop_timer) < MEASUREMENT_PERIOD_mS){
+  while((current_time - loop_timer) < MEASUREMENT_PERIOD_mS){
     yield();
     current_time = millis();
   }
