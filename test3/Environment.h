@@ -48,7 +48,7 @@
 #define SPI_TRANSFER_DUMMY          0xFF
 
 /** discharge cells during voltage measurements*/
-// #define DISCHARGE_WHEN_ADC
+#define DISCHARGE_WHEN_ADC
 
 /** use 10 cell mode when possible
  * pro: LTC will save some power and time

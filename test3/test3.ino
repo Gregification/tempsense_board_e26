@@ -60,9 +60,9 @@ void setup() {
   // init
   //-----------------------------------------------------------------------------
   Serial.begin(SERIAL_BAUD);
+  Serial.flush(); // sometimes first line printed dosnet actually print
   Serial.println("test3 start");
 
-  // slave select pin
   pinMode(CS_PIN, OUTPUT);
   digitalWrite(CS_PIN, HIGH);
 
@@ -75,6 +75,7 @@ void setup() {
 
   SPI.begin();  
   SPI.beginTransaction(SPISettings(LTC6803_SPI_CLK_SPEED, MSBFIRST, SPI_MODE0));
+
 
   //-----------------------------------------------------------------------------
   // POST
@@ -161,6 +162,8 @@ void setup() {
   //      i bother to ensure this because this is the only part of the program 
   //      that wont self correct
   //-----------------------------------------------------------------------------
+  
+  Serial.println("writing setup");
 
   // - keep trying to write untill the received config is the same as the transmitted
   while(true){
