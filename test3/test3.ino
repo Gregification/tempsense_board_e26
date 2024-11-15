@@ -21,15 +21,21 @@
  *        commands in a row before it risks over currenting the ic.
 */
 
+// native c/c++
 #include <stdint.h>
 #include <array>
+
+#include <ACANFD_FeatherM4CAN-from-cpp.h>
+#include <ACANFD_FeatherM4CAN.h>
+
+#define CAN0_MESSAGE_RAM_SIZE (0)
+#define CAN1_MESSAGE_RAM_SIZE (896)
 
 // imports from the "DC1651A.ino" file
 #include <Arduino.h>
 #include <Adafruit_SPIFlash.h>  // fs
 #include <SdFat.h>              // fs
 #include <SPI.h>
-
 #include "Linduino.h"           // "hardware definitions for the Linduino"
 #include "LT_SPI.h"             // "Routines to communicate with ATmega328P's hardware SPI port."
 #include "UserInterface.h"

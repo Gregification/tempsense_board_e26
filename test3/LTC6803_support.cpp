@@ -91,3 +91,9 @@ void LTC6803_rddiag(uint8_t total_ic, uint8_t rx_diag[][2]){
     // spi_rx();
     // digitalWrite(CS_PIN, LOW);
 }
+
+int16_t VtoTforF24(uint16_t x)//
+{
+    int I =-474.75*pow(x,6)+4616.6*pow(x,5)-17903*pow(x,4)+34634*pow(x,3)-33495*pow(x,2)+13014*x;
+    return I;
+}

@@ -37,6 +37,9 @@ void spi_rx(uint8_t len, uint8_t arr[]);
 /** sends array. slave transmission is ignored */
 void spi_tx(uint8_t len, uint8_t const arr[]);
 
+/** INCOMPLETE TODO. read diagnostic codes */
 void LTC6803_rddiag(uint8_t total_ic, uint8_t r_diag[][3]);
+
+int16_t VtoTforF24(uint16_t raw_adc_value);
 
 #endif // __LTC6803_SUPPORT_H__
