@@ -25,11 +25,10 @@
 #include <stdint.h>
 #include <array>
 
-#include <ACANFD_FeatherM4CAN-from-cpp.h>
-#include <ACANFD_FeatherM4CAN.h>
-
 #define CAN0_MESSAGE_RAM_SIZE (0)
 #define CAN1_MESSAGE_RAM_SIZE (896)
+#include <ACANFD_FeatherM4CAN-from-cpp.h>
+#include <ACANFD_FeatherM4CAN.h>
 
 // imports from the "DC1651A.ino" file
 #include <Arduino.h>
@@ -66,7 +65,7 @@ void setup() {
   // init
   //-----------------------------------------------------------------------------
   Serial.begin(SERIAL_BAUD);
-  Serial.flush(); // sometimes first line printed dosnet actually print
+  while(!Serial){}
   Serial.println("test3 start");
 
   pinMode(CS_PIN, OUTPUT);
@@ -325,30 +324,27 @@ void loop() {
       // write to file
       // using a new file handler every time just to test if it works, im guessing 
       //    theres around a 200ms time between logging. seems reasonable?
-      {
-        File32 log = fatfs.open(LOG_FILE_NAME, FILE_WRITE);
-        if(log){
-          // format
-          //    [time in ms],[C1],[C2],[C3],[C4],[C5],[C6],[C7],[C8],[C9],[C10],[C11],[C12],[C1 of IC2 ...]
-          // everything is in hex
-          
-          log.print(loop_timer, HEX);
+      if(File32 log = fatfs.open(LOG_FILE_NAME, FILE_WRITE)){
+        // format
+        //    [time in ms],[C1],[C2],[C3],[C4],[C5],[C6],[C7],[C8],[C9],[C10],[C11],[C12],[C1 of IC2 ...]
+        // everything is in hex
+        
+        log.print(loop_timer, HEX);
 
-          for(uint8_t ic = 0; ic < TOTAL_IC; ic++)
-            for(uint8_t s = 0; s < 12; s++){
-              log.print(",");
-              log.print(adc_CV_to_mV(cell_codes[ic][s]));
-            }
+        for(uint8_t ic = 0; ic < TOTAL_IC; ic++)
+          for(uint8_t s = 0; s < 12; s++){
+            log.print(",");
+            log.print(adc_CV_to_mV(cell_codes[ic][s]));
+          }
 
-          log.println();
-          log.close();
-          // delay(5000);
-        } else {
-          Serial.print(__LINE__);
-          Serial.println(" unable to write log file");
-        }
-
+        log.println();
+        log.close();
+        // delay(5000);
+      } else {
+        Serial.print(__LINE__);
+        Serial.println(" unable to write log file");
       }
+      
     #endif
 
 
